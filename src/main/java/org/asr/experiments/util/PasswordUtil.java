@@ -18,7 +18,7 @@ public class PasswordUtil {
             }
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing password", e);
+            throw new RuntimeException("Error hashing password", e); // NOSONAR
         }
     }
 }
