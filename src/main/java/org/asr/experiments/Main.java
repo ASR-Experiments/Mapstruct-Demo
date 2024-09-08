@@ -5,12 +5,11 @@ import lombok.extern.java.Log;
 import org.asr.experiments.dto.request.UserRequest;
 import org.asr.experiments.dto.response.UserResponse;
 import org.asr.experiments.entity.UserEntity;
-import org.asr.experiments.mapper.UserMapper;
+import org.asr.experiments.mapper.UserMapperV2;
 import org.asr.experiments.util.ObjectUtil;
 import org.asr.experiments.util.PropertyUtil;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Properties;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -28,14 +27,14 @@ public class Main {
         ObjectMapper objectMapper = ObjectUtil.getObjectMapper();
         UserRequest userRequest = objectMapper.readValue(request, UserRequest.class);
         // From Request Logic
-        Optional<UserEntity> userEntity = UserMapper.userToEntity(userRequest);
-        if (userEntity.isPresent()) {
-            log.info(userEntity.get().toString());
+        UserEntity userEntity = UserMapperV2.INSTANCE.userToEntity(userRequest);
+        if (userEntity != null) {
+            log.info(userEntity.toString());
             // Perform some more logic
             // To Response Logic
-            Optional<UserResponse> response = UserMapper.userToDto(userEntity.get());
-            if (response.isPresent()) {
-                log.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response.get()));
+            UserResponse response = UserMapperV2.INSTANCE.userToDto(userEntity);
+            if (response != null) {
+                log.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
                 return;
             }
         }
