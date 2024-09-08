@@ -18,4 +18,8 @@ public class AddressEntity {
     String latitude;
     String longitude;
     String type;
+
+    public boolean isEmpty() {
+        return houseNumber == null && street == null && locality == null && city == null && state == null && postalCode == null && country == null;
+    }
 }

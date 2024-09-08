@@ -21,4 +21,8 @@ public class ExternalProfileEntity {
     String websiteUrl;
     String blogUrl;
     Set<String> otherProfileUrlSet;
+
+    public boolean isEmpty() {
+        return linkedinProfileUrl == null && githubProfileUrl == null && twitterProfileUrl == null && facebookProfileUrl == null && instagramProfileUrl == null && stackoverflowProfileUrl == null && mediumProfileUrl == null && youtubeProfileUrl == null && websiteUrl == null && blogUrl == null && (otherProfileUrlSet == null || otherProfileUrlSet.isEmpty());
+    }
 }
