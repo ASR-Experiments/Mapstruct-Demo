@@ -1,16 +1,15 @@
 package org.asr.experiments;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.java.Log;
 import org.asr.experiments.dto.request.UserRequest;
 import org.asr.experiments.dto.response.UserResponse;
 import org.asr.experiments.entity.UserEntity;
 import org.asr.experiments.mapper.UserMapper;
+import org.asr.experiments.util.ObjectUtil;
+import org.asr.experiments.util.PropertyUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -23,29 +22,22 @@ public class Main {
         // Reading logic
         Properties properties = new Properties();
 
-        try (InputStream input = Main.class.getClassLoader().getResourceAsStream("application.properties")) {
-            if (input == null) {
-                log.info("Sorry, unable to find application.properties");
-                return;
-            }
-            properties.load(input);
-        }
+        if (PropertyUtil.loadProperties(properties, "application.properties")) return;
 
         String request = properties.getProperty("sample.request");
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(javaTimeModule);
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        ObjectMapper objectMapper = ObjectUtil.getObjectMapper();
         UserRequest userRequest = objectMapper.readValue(request, UserRequest.class);
-        // Business Logic
-        UserEntity userEntity = UserMapper.userToEntity(userRequest);
-        log.info(userEntity.toString());
-        // Perform some more logic
-        // Business Logic
-        Optional<UserResponse> response = UserMapper.userToDto(userEntity);
-        if (response.isPresent()) {
-            log.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response.get()));
-            return;
+        // From Request Logic
+        Optional<UserEntity> userEntity = UserMapper.userToEntity(userRequest);
+        if (userEntity.isPresent()) {
+            log.info(userEntity.get().toString());
+            // Perform some more logic
+            // To Response Logic
+            Optional<UserResponse> response = UserMapper.userToDto(userEntity.get());
+            if (response.isPresent()) {
+                log.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response.get()));
+                return;
+            }
         }
         log.severe("Error in converting UserEntity to UserResponse");
     }

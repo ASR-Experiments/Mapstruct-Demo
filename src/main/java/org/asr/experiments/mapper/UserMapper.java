@@ -1,5 +1,6 @@
 package org.asr.experiments.mapper;
 
+import lombok.extern.java.Log;
 import org.asr.experiments.dto.request.UserRequest;
 import org.asr.experiments.dto.response.AddressResponse;
 import org.asr.experiments.dto.response.ExternalProfileResponse;
@@ -12,49 +13,75 @@ import org.asr.experiments.util.PasswordUtil;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Mapper class to convert UserRequest to UserEntity and UserEntity to UserResponse
  */
-public class UserMapper {
+@Log
+public record UserMapper() {
     /**
      * Convert UserRequest to UserEntity
      *
-     * @param dto UserRequest object
+     * @param request UserRequest object
      * @return UserEntity object
      */
-    public static UserEntity userToEntity(UserRequest dto) throws MalformedURLException {
-        return UserEntity.builder()
-                .name(new StringJoiner(" ")
-                        .add(dto.getFirstName())
-                        .add(dto.getMiddleName())
-                        .add(dto.getLastName())
-                        .toString())
-                .email(dto.getEmail())
-                .password(dto.getPassword())
-                .phoneNumber(dto.getPhoneCode() + dto.getPhoneNumber())
-                .dateOfBirth(LocalDate.parse(dto.getDateOfBirth()))
-                .gender(dto.getGender())
-                .profilePictureUrl(URI.create(dto.getProfilePictureUrl()).toURL())
-                .addressSet(addressToEntity(dto))
-                .connection(ExternalProfileEntity.builder()
-                        .linkedinProfileUrl(dto.getLinkedinProfileUrl())
-                        .githubProfileUrl(dto.getGithubProfileUrl())
-                        .twitterProfileUrl(dto.getTwitterProfileUrl())
-                        .facebookProfileUrl(dto.getFacebookProfileUrl())
-                        .instagramProfileUrl(dto.getInstagramProfileUrl())
-                        .stackoverflowProfileUrl(dto.getStackoverflowProfileUrl())
-                        .mediumProfileUrl(dto.getMediumProfileUrl())
-                        .youtubeProfileUrl(dto.getYoutubeProfileUrl())
-                        .websiteUrl(dto.getWebsiteUrl())
-                        .blogUrl(dto.getBlogUrl())
-                        .otherProfileUrlSet(dto.getOtherProfileUrlSet())
-                        .build())
-                .build();
+    public static Optional<UserEntity> userToEntity(UserRequest request) {
+        return Optional
+                .ofNullable(request)
+                .map(dto -> UserEntity.builder()
+                        .name(joinWords(" ", dto.getFirstName(), dto.getMiddleName(), dto.getLastName()))
+                        .email(dto.getEmail())
+                        .password(dto.getPassword())
+                        .phoneNumber(joinWords("-", dto.getPhoneCode(), dto.getPhoneNumber()))
+                        .dateOfBirth(Optional.of(dto)
+                                .map(UserRequest::getDateOfBirth)
+                                .map(LocalDate::parse)
+                                .orElse(null))
+                        .gender(dto.getGender())
+                        .profilePictureUrl(Optional.ofNullable(dto.getProfilePictureUrl())
+                                .map(URI::create)
+                                .map(uri -> {
+                                    try {
+                                        return uri.toURL();
+                                    } catch (MalformedURLException e) {
+                                        log.warning("Invalid URL: " + uri);
+                                        return null;
+                                    }
+                                })
+                                .orElse(null))
+                        .addressSet(Optional.of(dto)
+                                .map(UserMapper::addressToEntity)
+                                .filter(set -> !set.isEmpty())
+                                .orElse(null))
+                        .connection(Optional.of(ExternalProfileEntity.builder()
+                                        .linkedinProfileUrl(dto.getLinkedinProfileUrl())
+                                        .githubProfileUrl(dto.getGithubProfileUrl())
+                                        .twitterProfileUrl(dto.getTwitterProfileUrl())
+                                        .facebookProfileUrl(dto.getFacebookProfileUrl())
+                                        .instagramProfileUrl(dto.getInstagramProfileUrl())
+                                        .stackoverflowProfileUrl(dto.getStackoverflowProfileUrl())
+                                        .mediumProfileUrl(dto.getMediumProfileUrl())
+                                        .youtubeProfileUrl(dto.getYoutubeProfileUrl())
+                                        .websiteUrl(dto.getWebsiteUrl())
+                                        .blogUrl(dto.getBlogUrl())
+                                        .otherProfileUrlSet(dto.getOtherProfileUrlSet())
+                                        .build())
+                                .filter(profile -> !profile.isEmpty())
+                                .orElse(null))
+                        .build());
+    }
+
+    private static String joinWords(String deli, String... words) {
+        return Optional.of(Stream.of(words)
+                        .filter(name -> name != null && !name.isBlank())
+                        .collect(Collectors.joining(deli)))
+                .filter(x -> !x.isBlank())
+                .orElse(null);
     }
 
     private static Set<AddressEntity> addressToEntity(UserRequest dto) {
@@ -82,7 +109,12 @@ public class UserMapper {
                 .postalCode(dto.getCurrentPostalCode())
                 .type("current")
                 .build();
-        return Set.of(permanentAddress, currentAddress);
+        Set<AddressEntity> addressSet = new HashSet<>();
+        if (!permanentAddress.isEmpty())
+            addressSet.add(permanentAddress);
+        if (!currentAddress.isEmpty())
+            addressSet.add(currentAddress);
+        return addressSet;
     }
 
     /**

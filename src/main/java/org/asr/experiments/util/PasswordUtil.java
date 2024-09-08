@@ -1,8 +1,11 @@
 package org.asr.experiments.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+@UtilityClass
 public class PasswordUtil {
 
     public static String hashPassword(String password) {
