@@ -7,6 +7,7 @@ import org.asr.experiments.entity.ExternalProfileEntity;
 import org.asr.experiments.entity.UserEntity;
 import org.asr.experiments.util.PasswordUtil;
 import org.mapstruct.Builder;
+import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,7 +19,8 @@ import java.util.stream.Stream;
 
 @Mapper(
         builder = @Builder,
-        imports = {PasswordUtil.class}
+        imports = {PasswordUtil.class},
+        collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE
 )
 public interface UserMapperV2 {
 
@@ -42,7 +44,7 @@ public interface UserMapperV2 {
             addressSet.add(permanentAddress);
         if (!currentAddress.isEmpty())
             addressSet.add(currentAddress);
-        return addressSet;
+        return addressSet.isEmpty() ? null : addressSet;
     }
 
     @Mapping(target = "houseNumber", source = "currentHouseNumber")
