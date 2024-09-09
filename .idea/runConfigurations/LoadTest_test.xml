@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LoadTest.test" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
+    <module name="mapstruct.demo" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.asr.experiments.mapper.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="PACKAGE_NAME" value="org.asr.experiments.mapper" />
+    <option name="MAIN_CLASS_NAME" value="org.asr.experiments.mapper.LoadTest" />
+    <option name="METHOD_NAME" value="test" />
+    <option name="TEST_OBJECT" value="method" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx8g -Xmn8g -Xms8g" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
